@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KEYGEN - TOOL THIÊN TRẦN</title>
+<style>
+*{box-sizing:border-box}body{background:#020610;color:#cfcfcf;font-family:monospace;padding:20px;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.box{background:rgba(5,10,25,.95);border:1px solid #00e5ff;padding:32px;max-width:560px;width:100%;box-shadow:0 0 40px #00e5ff60}
+h1{color:#00e5ff;font-size:20px;letter-spacing:4px;margin:0 0 4px;text-align:center;text-shadow:0 0 10px #00e5ff}
+.sub{color:#557;font-size:11px;text-align:center;letter-spacing:2px;margin-bottom:24px}
+label{display:block;color:#888;font-size:11px;margin:14px 0 6px;letter-spacing:1px;text-transform:uppercase}
+input,select{width:100%;padding:12px;background:#000;border:1px solid #223;color:#00e5ff;font-size:13px;outline:none;font-family:monospace}
+input:focus,select:focus{border-color:#00e5ff}
+.row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+button{flex:1;padding:12px;background:#00e5ff;color:#000;border:1px solid #00e5ff;font-size:13px;font-weight:bold;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:.2s}
+button:hover{background:#33ebff;box-shadow:0 0 15px #00e5ff80}
+.out{background:#000;border:1px solid #223;padding:14px;margin-top:18px;font-size:11px;color:#888;word-break:break-all;white-space:pre-wrap;min-height:80px;line-height:1.6}
+.k{color:#0f0}.h{color:#00e5ff}.e{color:#fa3}.er{color:#ff2d55}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>KEYGEN THIÊN TRẦN</h1>
+<div class="sub">// tạo key vip & thường //</div>
+
+<label>Loại key</label>
+<select id="type">
+<option value="TT">VIP (tính theo ngày)</option>
+<option value="NT">THƯỜNG (tính theo phút)</option>
+</select>
+
+<label>Hạn sử dụng</label>
+<select id="dur">
+<option value="10">10 phút (chỉ key thường)</option>
+<option value="60">1 giờ (chỉ key thường)</option>
+<option value="1440">1 ngày</option>
+<option value="10080">7 ngày</option>
+<option value="43200">30 ngày</option>
+<option value="0">Vĩnh viễn</option>
+</select>
+
+<div class="row">
+<button onclick="gen()">Tạo Key</button>
+</div>
+
+<div class="out" id="out">// kết quả hiện ở đây</div>
+</div>
+
+<script>
+// Khớp secret với code tool
+const SECRET = "THIENTRAN_SECRET_2024";
+// Hash 32-bit
+const H = (s) => {
+  let x = 0;
+  for (let i = 0; i < s.length; i++) x = Math.imul(31, x) + s.charCodeAt(i) | 0;
+  let hex = (x >>> 0).toString(16);
+  while (hex.length < 8) hex = "0" + hex;
+  return hex;
+};
+
+// Sinh HWID y hệt tool
+const getFp = () => {
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = 200; canvas.height = 40;
+    const ctx = canvas.getContext("2d");
+    ctx.textBaseline = "top"; ctx.font = "14px Arial";
+    ctx.fillStyle = "#f60"; ctx.fillRect(0,0,100,10);
+    ctx.fillStyle = "#069"; ctx.fillText("ThienTran_Vex_2024", 2, 2);
+    const data = ctx.getImageData(0,0,200,40).data;
+    let hash = 0;
+    for (let i = 0; i < data.length; i += 4) hash = (hash << 5) - hash + data[i] + data[i+1] + data[i+2] + data[i+3] | 0;
+    return "fp_" + Math.abs(hash).toString(16) + "_" + screen.width + "x" + screen.height + "_" + Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch(e) { return "fp_err"; }
+};
+
+// Random string
+const rnd = (len) => {
+  let s = "";
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+};
+
+const $ = id => document.getElementById(id);
+
+function gen() {
+  const type = $("type").value; // TT hoặc NT
+  const dur = parseInt($("dur").value); // 10, 60, 1440, ...
+  const out = $("out");
+  
+  // Check logic: nếu chọn VIP mà hạn < 1440 thì cảnh báo đổi sang thường
+  let finalType = type;
+  if (type === "TT" && dur < 1440) {
+    finalType = "NT"; // tự đổi sang thường nếu chọn phút/giờ
+  }
+  
+  // Hex 2 ký tự cho duration
+  const durHex = dur.toString(16).padStart(2, "0").toUpperCase();
+  
+  // Random 16 ký tự phần thân
+  const randPart = rnd(16);
+  
+  // Tạo chữ ký 8 hex
+  const signature = H(durHex + randPart + SECRET).toUpperCase();
+  
+  // Key hoàn chỉnh: PREFIX-DURATION-RANDOM-SIGNATURE
+  const key = `${finalType}-${durHex}-${randPart}-${signature}`;
+  
+  // Hiển thị HWID máy hiện tại
+  const hwid = getFp();
+  
+  // Tính thời gian thực tế
+  let displayTime = "";
+  if (dur === 0) displayTime = "Vĩnh viễn";
+  else if (finalType === "TT") displayTime = (dur / 1440) + " ngày";
+  else displayTime = dur + " phút";
+
+  out.innerHTML = 
+    `<span class="k">KEY: ${key}</span>\n` +
+    `<span class="h">LOẠI: ${finalType === "TT" ? "VIP" : "THƯỜNG"}</span>\n` +
+    `<span class="e">HẠN: ${displayTime}</span>\n\n` +
+    `<span class="h">HWID MÁY TẠO KEY:</span>\n` +
+    `<span class="e">${hwid}</span>\n\n` +
+    `👉 Copy key trên gửi cho khách. Key này chỉ dùng được trên máy của khách nếu khách tự tạo hoặc gửi HWID cho bạn để tạo lại.`;
+}
+
+// Note
+const out = document.getElementById("out");
+if(out) {
+  out.innerHTML += "\n\n⚠️ LƯU Ý: Key sinh ra gắn với HWID máy hiện tại. Để tạo key cho máy khác, cần HWID máy đó.";
+}
+</script>
+</body>
+</html>
